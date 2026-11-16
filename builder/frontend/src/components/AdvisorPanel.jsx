@@ -48,7 +48,14 @@ export default function AdvisorPanel() {
       const response = useLlm && healthInfo?.avalai_configured
         ? await advisorApi.recommend(payload)
         : await advisorApi.recommendFast(payload)
-      setResult(response)
+      // دو مسیر پیشنهاد کلیدهای متفاوتی دارند: recommend-fast از
+      // modules/ai_points و recommend (LLM) از recommended_modules/
+      // recommended_ai_points. اینجا یکدست می‌شوند تا بقیه قسمت‌ها یکسان کار کنند.
+      setResult({
+        ...response,
+        modules: response?.modules || response?.recommended_modules || [],
+        ai_points: response?.ai_points || response?.recommended_ai_points || [],
+      })
       if (response?.llm_note) notify(response.llm_note, 'info', 6000)
     } catch (error) {
       notify(error.message || 'پیشنهاد ماژول ناموفق بود', 'error')

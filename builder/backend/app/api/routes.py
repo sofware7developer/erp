@@ -416,6 +416,7 @@ def projects_build_phases(project_id: str) -> dict[str, Any]:
     return {
         "project": json.loads(project.model_dump_json()),
         "phases": [json.loads(p.model_dump_json()) for p in phases],
+        "total_months": sum(p.duration_months for p in phases),
     }
 
 

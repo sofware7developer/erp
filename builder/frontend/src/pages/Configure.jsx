@@ -20,7 +20,8 @@ const TABS = [
 ]
 
 function ProjectsPanel({ onDone }) {
-  const { projects, projectsLoading, refreshProjects, removeProject, notify } = useApp()
+  const { projects, projectsLoading, refreshProjects, removeProject, notify, meta } = useApp()
+  const industryLabel = (id) => meta?.industries?.find((x) => x.id === id)?.label || id || '—'
   const [detail, setDetail] = useState(null)
   const [busyId, setBusyId] = useState(null)
 
@@ -29,7 +30,9 @@ function ProjectsPanel({ onDone }) {
     try {
       const full = await projectsApi.get(project.id)
       const phases = await projectsApi.phases(project.id).catch(() => ({ phases: [], total_months: 0 }))
-      setDetail({ ...full, phases: phases.phases || [], total_months: phases.total_months || 0 })
+      const list = phases.phases || []
+      const totalMonths = phases.total_months || list.reduce((sum, p) => sum + (p.duration_months || 0), 0)
+      setDetail({ ...full, phases: list, total_months: totalMonths })
     } catch (error) {
       notify(error.message, 'error')
     } finally {
@@ -52,7 +55,6 @@ function ProjectsPanel({ onDone }) {
         name: `${project.name} (کپی)`,
         name_en: `${project.name_en || ''} (copy)`.trim(),
         description: project.description || '',
-        industry: project.industry || '',
         settings: project.settings || {},
         selection: project.selection || {},
       })
@@ -107,7 +109,7 @@ function ProjectsPanel({ onDone }) {
                     <strong>{project.name}</strong>
                     <div className="tiny dim">{project.id}</div>
                   </td>
-                  <td className="tiny">{project.industry || '—'}</td>
+                  <td className="tiny">{industryLabel(project.settings?.industry)}</td>
                   <td className="tiny muted">
                     {toPersianDigits(project.selection?.modules?.length || 0)} ماژول ·{' '}
                     {toPersianDigits(project.selection?.ai_points?.length || 0)} AI
@@ -167,7 +169,7 @@ function ProjectsPanel({ onDone }) {
             <dt>توضیح</dt>
             <dd>{detail.description || '—'}</dd>
             <dt>صنعت</dt>
-            <dd>{detail.industry || '—'}</dd>
+            <dd>{industryLabel(detail.settings?.industry)}</dd>
             <dt>ماژول‌های انتخابی</dt>
             <dd>{toPersianDigits(detail.selection?.modules?.length || 0)}</dd>
             <dt>نقاط AI</dt>
