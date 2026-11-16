@@ -53,8 +53,12 @@ function useCatalogSearch() {
   return { query, setQuery, results, searching }
 }
 
-/** درخت چهارسطحی کاتالوگ قابلیت‌ها */
-export default function CatalogTree() {
+/** درخت چهارسطحی کاتالوگ قابلیت‌ها
+ *
+ * `initialSection` کد بخشی است که باید هنگام ورود باز شود (مثلاً وقتی کاربر در
+ * صفحه خانه روی چیپ یک بخش کلیک می‌کند و با `?section=A` به پیکربندگر می‌آید).
+ */
+export default function CatalogTree({ initialSection = null }) {
   const { catalog, hierarchy, derived, toggleCode, toggleAi, selection, resolution } = useApp()
   const [open, setOpen] = useState(() => new Set())
   const [onlyAi, setOnlyAi] = useState(false)
@@ -74,6 +78,14 @@ export default function CatalogTree() {
 
   const openAll = () => setOpen(new Set(sections.map((s) => s.code)))
   const closeAll = () => setOpen(new Set())
+
+  // باز کردن بخش درخواست‌شده از URL و خاموش کردن فیلترها تا دیده شود
+  useEffect(() => {
+    if (!initialSection) return
+    setOpen((current) => new Set([...current, initialSection]))
+    setOnlyAi(false)
+    setOnlySelected(false)
+  }, [initialSection])
 
   const selectedModules = derived?.modules || new Set()
   const autoAdded = useMemo(() => new Set(resolution?.auto_added || []), [resolution])

@@ -9,8 +9,29 @@
 from __future__ import annotations
 
 import re
+from typing import Any
 
 from ..domain.dsl import pascal_case, singularize
+
+# ماژول مجازی برای موجودیت‌های پلتفرمی (مثل system_features) که کد ماژول
+# کاتالوگ ندارند. همه مولدها از همین تعریف مشترک استفاده می‌کنند تا نام
+# کلاس/namespace/روت برای هسته پلتفرم یکسان بماند.
+PLATFORM_MODULE: dict[str, Any] = {
+    "code": "S0",
+    "slug": "system",
+    "label_fa": "هسته پلتفرم",
+    "name_en": "Platform Core",
+    "description": "رجیستری قابلیت‌ها و موجودیت‌های پلتفرمی",
+    "ai_endpoints": [],
+    "menu_group": "سامانه",
+    "priority": 1,
+    "derived": False,
+}
+
+
+def platform_module() -> dict[str, Any]:
+    """کپی ماژول مجازی پلتفرم تا هیچ مولدی تعریف مشترک را تغییر ندهد."""
+    return dict(PLATFORM_MODULE)
 
 
 def singular_route_param(table: str) -> str:

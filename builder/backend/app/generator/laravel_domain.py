@@ -25,7 +25,7 @@ import re
 from typing import Any, Iterable
 
 from ..domain.dsl import pascal_case, singularize
-from .domain_naming import route_param_for
+from .domain_naming import platform_module, route_param_for
 from .writers import Package, php_value, render
 
 # --------------------------------------------------------------------------- #
@@ -1425,23 +1425,12 @@ def generate_domain_files(
     module_by_code = {m["code"]: m for m in modules}
 
     # ماژول مجازی برای موجودیت‌های پلتفرمی (بدون کد ماژول کاتالوگ)
-    PLATFORM_MODULE = {
-        "code": "S0",
-        "slug": "system",
-        "label_fa": "هسته پلتفرم",
-        "name_en": "Platform Core",
-        "description": "رجیستری قابلیت‌ها و موجودیت‌های پلتفرمی",
-        "ai_endpoints": [],
-        "menu_group": "سامانه",
-        "priority": 1,
-        "derived": False,
-    }
     known_codes = set(module_by_code)
-    if any(e["module_code"] not in known_codes for e in entities):
-        module_by_code["S0"] = PLATFORM_MODULE
+    if any((e["module_code"] or "S0") not in known_codes for e in entities):
+        module_by_code["S0"] = platform_module()
 
     def module_for(entity: dict[str, Any]) -> dict[str, Any] | None:
-        return module_by_code.get(entity["module_code"]) or module_by_code.get("S0")
+        return module_by_code.get(entity["module_code"] or "S0") or module_by_code.get("S0")
 
     for entity in entities:
         module = module_for(entity)

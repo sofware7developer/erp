@@ -249,7 +249,7 @@ export default function Configure() {
 
       {tab === 'catalog' && (
         <div className="grid cols-2">
-          <CatalogTree />
+          <CatalogTree initialSection={params.get('section')} />
           <SelectionCart />
         </div>
       )}

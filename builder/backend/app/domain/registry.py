@@ -317,7 +317,9 @@ def specs_for_modules(module_codes: Iterable[str]) -> dict[str, Any]:
     table_map = entity_table_map()
     chosen = [specs[code] for code in dict.fromkeys(module_codes) if code in specs]
 
-    entities: list[dict[str, Any]] = [PLATFORM_ENTITY]
+    # کپی از موجودیت پلتفرمی می‌سازیم تا singleton ماژول دست‌نخورده بماند
+    # (module_code بعداً روی خود موجودیت set می‌شود).
+    entities: list[dict[str, Any]] = [{**PLATFORM_ENTITY, "module_code": ""}]
     seen_tables = {PLATFORM_ENTITY["table"]}
     for spec in chosen:
         for ent in spec["entities"]:

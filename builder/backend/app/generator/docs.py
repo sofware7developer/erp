@@ -1384,18 +1384,25 @@ def generate_docs(
     `include_docs=False` فقط README، CHANGELOG و LICENSE را می‌سازد و
     `include_api_docs=False` سند مرجع API را حذف می‌کند.
     """
-    counters = context["counters"]
+    counters = context.get("counters", {})
     tables_by_module: dict[str, list[dict[str, Any]]] = {}
     for entity in entities:
         tables_by_module.setdefault(entity["module_code"] or "S0", []).append(entity)
 
-    for module in modules:
-        module["_stats"] = {
-            "groups": sum(1 for g in groups if g["module_code"] == module["code"]),
-            "items": sum(1 for i in items if i["module_code"] == module["code"]),
-            "ai": sum(1 for p in ai_points if p["module_code"] == module["code"]),
-            "tables": len(tables_by_module.get(module["code"], [])),
+    # آمار هر ماژول روی «کپی» ماژول‌ها نوشته می‌شود تا dictهای فراخوان (که بعداً
+    # در manifest.json مصرف می‌شوند) آلوده به کلید داخلی `_stats` نشوند.
+    modules = [
+        {
+            **module,
+            "_stats": {
+                "groups": sum(1 for g in groups if g["module_code"] == module["code"]),
+                "items": sum(1 for i in items if i["module_code"] == module["code"]),
+                "ai": sum(1 for p in ai_points if p["module_code"] == module["code"]),
+                "tables": len(tables_by_module.get(module["code"], [])),
+            },
         }
+        for module in modules
+    ]
 
     engine_counts: dict[str, int] = {}
     for point in ai_points:

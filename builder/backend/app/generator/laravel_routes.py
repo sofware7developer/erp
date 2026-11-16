@@ -13,7 +13,7 @@ from __future__ import annotations
 from typing import Any
 
 from .laravel_domain import module_namespace, section_namespace
-from .domain_naming import singular_route_param
+from .domain_naming import platform_module, singular_route_param
 from .writers import Package, render
 
 ROUTES_API_TEMPLATE = r"""<?php
@@ -563,9 +563,11 @@ def generate_routes(
     context: dict[str, Any],
 ) -> None:
     """تولید همه فایل‌های مسیر."""
+    # موجودیت‌های پلتفرمی module_code خالی دارند و به ماژول مجازی S0 نگاشت
+    # می‌شوند؛ هر دو شکل («» و «S0») پذیرفته می‌شود تا یکدست بماند.
     entities_by_module: dict[str, list[dict[str, Any]]] = {}
     for entity in entities:
-        entities_by_module.setdefault(entity["module_code"], []).append(entity)
+        entities_by_module.setdefault(entity["module_code"] or "S0", []).append(entity)
 
     package.add_rendered(
         "backend/routes/api.php",
@@ -578,13 +580,9 @@ def generate_routes(
     )
 
     catalog_codes = {m["code"] for m in modules}
-    for module in modules + ([{"code": "S0", "slug": "system", "label_fa": "هسته پلتفرم",
-                               "name_en": "Platform Core", "description": "رجیستری قابلیت‌های پلتفرم",
-                               "menu_group": "سامانه"}] if "" in entities_by_module else []):
+    for module in modules + ([platform_module()] if "S0" in entities_by_module else []):
         code = module["code"]
-        module_entities = entities_by_module.get(code) or (
-            entities_by_module.get("", []) if code == "S0" else []
-        )
+        module_entities = entities_by_module.get(code, [])
         if not module_entities:
             continue
 
@@ -619,14 +617,14 @@ def generate_seeders(
     context: dict[str, Any],
 ) -> None:
     """تولید سیدرهای پایگاه داده."""
-    module_codes = {e["module_code"] for e in entities}
+    module_codes = {e["module_code"] or "S0" for e in entities}
     seeder_classes: list[str] = []
     for module in modules:
         if module["code"] not in module_codes:
             continue
         namespace = section_namespace(module["code"])
         seeder_classes.append(f"{namespace}{module['code']}Seeder")
-    if "" in module_codes:
+    if "S0" in module_codes:
         seeder_classes.append("SystemS0Seeder")
 
     seeder_lines = "\n".join(f"            {name}::class," for name in seeder_classes)
