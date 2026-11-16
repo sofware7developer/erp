@@ -1294,7 +1294,25 @@ def build_seeder(
     body_lines: list[str] = []
 
     for entity in entities:
-        if include_demo_data:
+        # کارخانه‌های داده ستون‌های کلید خارجی را پر نمی‌کنند؛ اگر ستون خارجی
+        # اجباری (NOT NULL) باشد، درج با factory روی پایگاه داده واقعی شکست
+        # می‌خورد. این جداول به DemoHistorySeeder سپرده می‌شوند که کلید خارجی را
+        # از رکوردهای واقعی والد انتخاب می‌کند.
+        required_fk = [
+            f["name"] for f in entity["fields"]
+            if f["type"] == "foreign" and not f.get("nullable")
+        ]
+        if required_fk and include_demo_data:
+            body_lines.append(
+                f"        // {entity['name']}: کلید خارجی اجباری ({', '.join(required_fk)}) — "
+                f"توسط Demo\\DemoHistorySeeder با والد واقعی پر می‌شود"
+            )
+        elif required_fk:
+            body_lines.append(
+                f"        // {entity['name']}: کلید خارجی اجباری ({', '.join(required_fk)}) — "
+                f"factory آن را پر نمی‌کند؛ با داده نمونه غیرفعال، درج دستی لازم است"
+            )
+        elif include_demo_data:
             body_lines.append(
                 f"        {entity['name']}::factory()->count(5)->create();"
             )

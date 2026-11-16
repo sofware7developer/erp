@@ -378,6 +378,7 @@ def generate_package(project: ProjectConfig, *, keep_previous: bool = False) -> 
 
     generate_seeders(
         package,
+        settings=settings,
         modules=modules,
         entities=entities,
         include_demo_data=bool(settings.get("include_demo_data", False)),

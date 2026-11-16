@@ -259,3 +259,66 @@ def check_manifest(root: Path) -> tuple[bool, str]:
     if not manifest.get("reproduce", {}).get("selection"):
         problems.append("manifest بخش reproduce.selection ندارد")
     return (not problems), "; ".join(problems) or f"{actual} فایل، {len(manifest.get('modules', []))} ماژول"
+
+
+def _parse_demo_spec(spec_text: str) -> tuple[list[str], dict[str, str], list[tuple[str, str, str, bool]]]:
+    """تجزیه DemoDataSpec.php: (فهرست جداول به ترتیب، ثابت‌ها، کلیدهای خارجی).
+
+    هر کلید خارجی به‌صورت (جدول، ستون، هدف، nullable) برگردانده می‌شود.
+    """
+    tables = re.findall(r"^ {16}'table' => '([a-z0-9_]+)',", spec_text, re.M)
+    constants = dict(re.findall(r"public const (\w+) = ([^;]+);", spec_text))
+    marker = " " * 16 + "'table' => '"
+    fks: list[tuple[str, str, str, bool]] = []
+    for index, table in enumerate(tables):
+        start = spec_text.index(marker + table + "',")
+        end = spec_text.index(marker, start + 10) if index + 1 < len(tables) else spec_text.rindex("        ];")
+        block = spec_text[start:end]
+        for match in re.finditer(r"'name' => '([a-z0-9_]+)', 'type' => 'foreign'([^\]]*)", block):
+            column, rest = match.group(1), match.group(2)
+            target_match = re.search(r"'target' => '([a-z0-9_]+)'", rest)
+            target = target_match.group(1) if target_match else ""
+            fks.append((table, column, target, "'nullable' => true" in rest))
+    return tables, constants, fks
+
+
+def check_demo_data(root: Path) -> tuple[bool, str]:
+    """بررسی موتور داده نمونه: وجود سه‌گانه فایل‌ها و ترتیب توپولوژیک کلید خارجی."""
+    seeders = root / "backend" / "database" / "seeders"
+    spec_path = seeders / "Demo" / "DemoDataSpec.php"
+    history_path = seeders / "Demo" / "DemoHistorySeeder.php"
+    entry_path = seeders / "DemoDataSeeder.php"
+
+    present = [p for p in (spec_path, history_path, entry_path) if p.exists()]
+    if not present:
+        return True, "داده نمونه غیرفعال (include_demo_data=false)"
+    if len(present) != 3:
+        missing = [p.name for p in (spec_path, history_path, entry_path) if not p.exists()]
+        return False, "فایل‌های ناقص داده نمونه: " + ", ".join(missing)
+
+    spec_text = spec_path.read_text(encoding="utf-8")
+    tables, constants, fks = _parse_demo_spec(spec_text)
+    problems: list[str] = []
+
+    if not tables:
+        problems.append("DemoDataSpec هیچ جدولی ندارد")
+
+    for name in ("MONTHS", "ROWS", "SEED"):
+        raw = constants.get(name, "").strip()
+        if not raw.isdigit() or int(raw) <= 0:
+            problems.append(f"ثابت {name} نامعتبر: {raw or 'نیست'}")
+
+    position = {t: i for i, t in enumerate(tables)}
+    required = 0
+    for table, column, target, nullable in fks:
+        if nullable or not target or target == table or target not in position:
+            continue
+        required += 1
+        if position[target] >= position[table]:
+            problems.append(f"ترتیب توپولوژیک نقض شد: {table}.{column} → {target}")
+
+    if "DemoDataSpec::tables()" not in history_path.read_text(encoding="utf-8"):
+        problems.append("DemoHistorySeeder به DemoDataSpec::tables() ارجاع نمی‌دهد")
+
+    detail = f"{len(tables)} جدول، {required} کلید خارجی اجباری مرتب‌شده"
+    return (not problems), "; ".join(problems) or detail

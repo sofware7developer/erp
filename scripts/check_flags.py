@@ -66,6 +66,26 @@ CHECKS = [
         "text_when_true": [],
     },
     {
+        "flag": "include_demo_data",
+        "present_when_true": [
+            "backend/database/seeders/DemoDataSeeder.php",
+            "backend/database/seeders/Demo/DemoDataSpec.php",
+            "backend/database/seeders/Demo/DemoHistorySeeder.php",
+        ],
+        "absent_when_false": [
+            "backend/database/seeders/DemoDataSeeder.php",
+            "backend/database/seeders/Demo/DemoDataSpec.php",
+            "backend/database/seeders/Demo/DemoHistorySeeder.php",
+        ],
+        "text_when_true": [
+            ("backend/database/seeders/DemoDataSeeder.php", "DemoHistorySeeder"),
+            ("backend/database/seeders/ManufacturingA1Seeder.php", "داده نمونه فعال است"),
+        ],
+        "text_when_false": [
+            ("backend/database/seeders/ManufacturingA1Seeder.php", "داده نمونه غیرفعال است"),
+        ],
+    },
+    {
         "flag": "include_tests",
         "present_when_true": ["backend/phpunit.xml"],
         "absent_when_false": [],

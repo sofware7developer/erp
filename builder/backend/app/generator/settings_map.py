@@ -257,12 +257,21 @@ def normalize_settings(
     settings["ssl_enabled"] = bool(settings.get("ssl_enabled", False))
     settings["multi_tenant"] = bool(settings.get("multi_tenant", False))
     settings["app_debug"] = bool(settings.get("app_debug", False))
-    for int_key in ("db_port", "db_host_port", "redis_port", "mail_port", "mqtt_port", "host_port", "iot_sampling_seconds"):
+    for int_key in (
+        "db_port", "db_host_port", "redis_port", "mail_port", "mqtt_port", "host_port",
+        "iot_sampling_seconds", "demo_data_months", "demo_data_rows", "demo_data_seed",
+    ):
         try:
             settings[int_key] = int(settings.get(int_key) or 0)
         except (TypeError, ValueError):
             settings[int_key] = 0
     if not settings["db_host_port"]:
         settings["db_host_port"] = settings["db_port"] or 3306
+
+    # حدود معقول برای داده نمونه
+    settings["demo_data_months"] = min(max(settings["demo_data_months"] or 18, 1), 120)
+    settings["demo_data_rows"] = min(max(settings["demo_data_rows"] or 12, 1), 500)
+    if not settings["demo_data_seed"]:
+        settings["demo_data_seed"] = 20260101
 
     return settings

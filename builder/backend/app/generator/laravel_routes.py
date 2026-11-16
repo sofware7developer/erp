@@ -13,6 +13,7 @@ from __future__ import annotations
 from typing import Any
 
 from .laravel_domain import module_namespace, section_namespace
+from .demo_data import generate_demo_data
 from .domain_naming import platform_module, singular_route_param
 from .writers import Package, render
 
@@ -454,30 +455,6 @@ class SystemSeeder extends Seeder
 }
 """
 
-DEMO_SEEDER_TEMPLATE = r"""<?php
-
-namespace Database\Seeders;
-
-use Illuminate\Database\Seeder;
-
-/**
- * داده نمونه برای محیط نمایش و آموزش
- *
- * فقط وقتی فعال می‌شود که در تنظیمات کارخانه include_demo_data=true باشد
- * یا دستور `php artisan db:seed --class=DemoDataSeeder` اجرا شود.
- */
-class DemoDataSeeder extends Seeder
-{
-    public function run(): void
-    {
-        $this->call([
-@@module_seeders@@
-        ]);
-
-        $this->command?->warn('داده نمونه درج شد — در محیط تولید استفاده نکنید.');
-    }
-}
-"""
 
 
 def build_module_routes(
@@ -611,6 +588,7 @@ def generate_routes(
 def generate_seeders(
     package: Package,
     *,
+    settings: dict[str, Any],
     modules: list[dict[str, Any]],
     entities: list[dict[str, Any]],
     include_demo_data: bool,
@@ -639,9 +617,13 @@ def generate_seeders(
     package.add("backend/database/seeders/SystemSeeder.php", SYSTEM_SEEDER, area="laravel-seeders")
 
     if include_demo_data:
-        package.add_rendered(
-            "backend/database/seeders/DemoDataSeeder.php",
-            DEMO_SEEDER_TEMPLATE,
-            area="laravel-seeders",
-            module_seeders=seeder_lines or "            // داده نمونه‌ای تعریف نشده است",
+        # داده نمونه تاریخ‌دار: مشخصات جداول از همان مدل دامنه‌ای ساخته می‌شود که
+        # مایگریشن‌ها از آن آمده‌اند، پس نام ستون‌ها همیشه معتبر است.
+        generate_demo_data(
+            package,
+            settings=settings,
+            entities=entities,
+            modules=modules,
+            context=context,
+            module_seeders=seeder_classes,
         )

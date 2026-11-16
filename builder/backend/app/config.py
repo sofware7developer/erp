@@ -177,6 +177,9 @@ DEFAULT_FACTORY_SETTINGS: dict = {
 
     # --- محتوای بسته خروجی ------------------------------------------------- #
     "include_demo_data": True,
+    "demo_data_months": 18,      # بازه تاریخچه داده نمونه (ماه)
+    "demo_data_rows": 12,        # ردیف پایه هر جدول (جزئیات/دفتر چند برابر)
+    "demo_data_seed": 20260101,  # بذر تصادفی تا داده نمونه تکرارپذیر باشد
     "include_tests": True,
     "include_docs": True,
     "include_mobile_pwa": True,

@@ -29,6 +29,7 @@ from app.schemas import ProjectConfig, Selection  # noqa: E402
 from package_checks import (  # noqa: E402
     build_frontend,
     check_compose_services,
+    check_demo_data,
     check_manifest,
     run_ai_tests,
     summarize,
@@ -95,7 +96,11 @@ def main() -> int:
         print("  " + line)
 
     print("\n۲) مانیفست و پشته استقرار")
-    for name, check in (("manifest", check_manifest), ("docker-compose", check_compose_services)):
+    for name, check in (
+        ("manifest", check_manifest),
+        ("docker-compose", check_compose_services),
+        ("demo-data", check_demo_data),
+    ):
         ok, detail = check(root)
         failures += 0 if ok else 1
         print(f"   {'PASS' if ok else 'FAIL'}  {name}: {detail}")
