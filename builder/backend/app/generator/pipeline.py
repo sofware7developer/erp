@@ -556,7 +556,7 @@ def generate_package(project: ProjectConfig, *, keep_previous: bool = False) -> 
         notes.append("")
     notes.extend(
         [
-            f"بسته در `{output_root}` نوشته شد و فایل فشرده `{zip_path.name}` ساخته شد.",
+            f"بسته در `{output_root.name}` نوشته شد و فایل فشرده `{zip_path.name}` ساخته شد.",
             "برای استقرار: `./deploy.sh` (یا `make install`) — سپس با کاربر مدیر وارد شوید.",
             f"مستندات: `README-fa.md` و پوشه `docs/` ({final_stats['areas'].get('docs', {}).get('files', 0)} فایل).",
         ]

@@ -222,7 +222,8 @@ def normalize_settings(
         settings.get("app_name_fa")
         or f"ERP {settings['company_name']}"
     )
-    settings["currency_label"] = settings.get("currency_label") or CURRENCY_LABELS.get(
+    # برچسب پول از خود کاربر می‌آید؛ در غیر این صورت از کد پول استخراج می‌شود
+    settings["currency_label"] = raw.get("currency_label") or CURRENCY_LABELS.get(
         str(settings.get("currency", "IRR")), "ریال"
     )
     settings["mail_from"] = settings.get("mail_from") or settings.get("admin_email") or f"erp@{derived['app_host']}"

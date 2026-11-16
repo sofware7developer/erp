@@ -13,7 +13,7 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Query
 from fastapi.responses import FileResponse, JSONResponse
 
-from ..ai.advisor import advise, build_phases, recommend_modules
+from ..ai.advisor import GOAL_MODULES, advise, build_phases, recommend_modules
 from ..ai.llm import chat, is_configured
 from ..ai.registry import ENGINES, capability_catalog, engine_summary
 from ..catalog.registry import ai_points as catalog_ai_points
@@ -33,7 +33,14 @@ from ..config import (
     QUEUE_DRIVERS,
     STORAGE_DRIVERS,
 )
-from ..domain.registry import SYSTEM_MODULES, coverage_report, resolve_modules, specs_for_modules
+from ..presets import preset_list
+from ..domain.registry import (
+    SUPPORT_MODULES,
+    SYSTEM_MODULES,
+    coverage_report,
+    resolve_modules,
+    specs_for_modules,
+)
 from ..projects import delete_project, get_project, list_projects, save_project
 from ..schemas import (
     AdvisorRequest,
@@ -95,6 +102,11 @@ def meta() -> dict[str, Any]:
             }
             for engine in ENGINES.values()
         ],
+        "advisor_goals": advisor_goals(),
+        "industries": [
+            {"id": preset["key"], "label": preset["name"], "note": preset["description"]}
+            for preset in preset_list()
+        ],
         "avalai": {
             "configured": is_configured(),
             "base_url": AVALAI_BASE_URL,
@@ -150,6 +162,33 @@ def search(q: str = Query(min_length=1), limit: int = Query(default=60, ge=1, le
     return {"query": q, "count": len(results), "results": results}
 
 
+def _module_dependencies(module_code: str) -> list[dict[str, Any]]:
+    """وابستگی‌های یک ماژول: از زیرمجموعه‌های کاتالوگ و نگاشت پشتیبانی دامنه."""
+    idx = index()
+    module = idx.modules.get(module_code)
+    if not module:
+        return []
+
+    found: dict[str, str] = {}
+    for group in module["groups"]:
+        for item in group["items"]:
+            for dep in item.get("deps") or []:
+                target = str(dep)
+                while target and target not in idx.modules and "." in target:
+                    target = target.rsplit(".", 1)[0]
+                if target and target in idx.modules and target != module_code:
+                    found.setdefault(target, f"وابستگی زیرمجموعه {item['code']}")
+
+    for support in SUPPORT_MODULES.get(module_code, []):
+        if support in idx.modules and support != module_code:
+            found.setdefault(support, "ماژول پشتیبانی دامنه")
+
+    return [
+        {"code": code, "name": idx.modules[code]["name"], "reason": reason}
+        for code, reason in sorted(found.items())
+    ]
+
+
 @router.get("/catalog/modules/{module_code}")
 def get_module(module_code: str) -> dict[str, Any]:
     idx = index()
@@ -162,7 +201,7 @@ def get_module(module_code: str) -> dict[str, Any]:
     return {
         "module": mod,
         "section": idx.sections[section_code],
-        "dependencies": sorted({dep[:2] + dep[1:] if False else dep for dep in []}),
+        "dependencies": _module_dependencies(code),
         "domain": {
             "entities": [
                 {
@@ -228,9 +267,12 @@ def get_dependencies() -> dict[str, Any]:
 # --------------------------------------------------------------------------- #
 @router.get("/presets")
 def get_presets() -> dict[str, Any]:
-    from ..presets import preset_list
-
     return {"presets": preset_list()}
+
+
+def advisor_goals() -> list[str]:
+    """اهداف کسب‌وکاری شناخته‌شده برای دستیار انتخاب ماژول."""
+    return sorted(GOAL_MODULES)
 
 
 @router.post("/presets/{preset_key}/apply")
@@ -475,7 +517,41 @@ def generate_package(request: GenerateRequest) -> dict[str, Any]:
         result = run_generate(request.project)
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc)) from exc
-    return json.loads(result.model_dump_json())
+    payload = json.loads(result.model_dump_json())
+    # مسیرهای محلی سرور به کلاینت ارسال نمی‌شوند؛ فقط نام بسته/فایل zip
+    payload["output_dir"] = Path(payload.get("output_dir") or "").name
+    payload["zip_path"] = Path(payload.get("zip_path") or "").name
+    return payload
+
+
+def _package_summary(path: Path) -> dict[str, Any]:
+    """خلاصه یک بسته تولیدشده برای فهرست و صفحه جزئیات."""
+    manifest_path = path / "manifest.json"
+    manifest: dict[str, Any] = {}
+    if manifest_path.exists():
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            manifest = {}
+    counts = manifest.get("counts", {})
+    zip_path = path.parent / f"{path.name}.zip"
+    return {
+        "package_id": path.name,
+        "name": manifest.get("package_name", path.name),
+        "created_at": manifest.get("created_at"),
+        "created_at_jalali": manifest.get("created_at_jalali"),
+        "preset_key": (manifest.get("project") or {}).get("preset_key"),
+        "project_name": (manifest.get("project") or {}).get("name"),
+        "modules": counts.get("modules"),
+        "entities": counts.get("entities"),
+        "ai_points": counts.get("ai_points"),
+        "file_count": counts.get("files"),
+        "line_count": counts.get("lines"),
+        "zip_exists": zip_path.exists(),
+        "zip_size_bytes": zip_path.stat().st_size if zip_path.exists() else 0,
+        "stats": manifest.get("stats", {}),
+        "notes": manifest.get("notes", []),
+    }
 
 
 @router.get("/packages")
@@ -485,32 +561,7 @@ def packages_list() -> dict[str, Any]:
         for path in sorted(OUTPUT_DIR.iterdir(), reverse=True):
             if not path.is_dir():
                 continue
-            manifest_path = path / "manifest.json"
-            manifest = {}
-            if manifest_path.exists():
-                try:
-                    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-                except json.JSONDecodeError:
-                    manifest = {}
-            counts = manifest.get("counts", {})
-            zip_path = path.parent / f"{path.name}.zip"
-            packages.append(
-                {
-                    "package_id": path.name,
-                    "name": manifest.get("package_name", path.name),
-                    "created_at": manifest.get("created_at"),
-                    "created_at_jalali": manifest.get("created_at_jalali"),
-                    "preset_key": (manifest.get("project") or {}).get("preset_key"),
-                    "modules": counts.get("modules"),
-                    "entities": counts.get("entities"),
-                    "ai_points": counts.get("ai_points"),
-                    "file_count": counts.get("files"),
-                    "line_count": counts.get("lines"),
-                    "zip_exists": zip_path.exists(),
-                    "zip_size_bytes": zip_path.stat().st_size if zip_path.exists() else 0,
-                    "stats": manifest.get("stats", {}),
-                }
-            )
+            packages.append(_package_summary(path))
     return {"packages": packages}
 
 
@@ -520,6 +571,35 @@ def _package_dir(package_id: str) -> Path:
     if not path.exists() or not path.is_dir():
         raise HTTPException(status_code=404, detail=f"بسته {package_id} یافت نشد")
     return path
+
+
+@router.get("/packages/{package_id}")
+def package_detail(package_id: str) -> dict[str, Any]:
+    """خلاصه + فهرست ماژول‌ها + ساختار ریشه یک بسته تولیدشده."""
+    path = _package_dir(package_id)
+    summary = _package_summary(path)
+    manifest_path = path / "manifest.json"
+    manifest: dict[str, Any] = {}
+    if manifest_path.exists():
+        try:
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            manifest = {}
+    summary["manifest_counts"] = manifest.get("counts", {})
+    summary["modules"] = manifest.get("modules", [])
+    summary["ai_engines"] = manifest.get("ai_engines", [])
+    summary["selection"] = (manifest.get("reproduce") or {}).get("selection")
+    summary["top_level"] = [
+        {
+            "name": node.get("name"),
+            "path": node.get("path"),
+            "type": node.get("type"),
+            "size": node.get("size"),
+            "children": len(node.get("children") or []),
+        }
+        for node in (manifest.get("tree") or [])
+    ]
+    return summary
 
 
 @router.get("/packages/{package_id}/manifest")

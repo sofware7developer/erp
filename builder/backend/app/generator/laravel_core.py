@@ -1130,7 +1130,8 @@ def generate_core_files(
         "cache_driver": settings.get("cache_driver", "database"),
         "queue_driver": settings.get("queue_driver", "database"),
         "session_driver": settings.get("session_driver", "database"),
-        "storage_driver": settings.get("storage_driver", "local"),
+        # کلید متعارف storage_disk است؛ storage_driver فقط برای سازگاری عقب‌رو
+        "storage_driver": settings.get("storage_disk") or settings.get("storage_driver", "local"),
         "mail_driver": settings.get("mail_driver", "smtp"),
         "mail_host": settings.get("mail_host", "smtp.example.com"),
         "mail_port": str(settings.get("mail_port", 587)),

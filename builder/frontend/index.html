@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="fa" dir="rtl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#070b18" />
+    <meta
+      name="description"
+      content="سازنده ERP هوشمند کارخانه‌ای — کاتالوگ ۲۱۵۷ قابلیت، پیکربندگر تعاملی و تولید بسته آماده استقرار"
+    />
+    <title>سازنده ERP هوشمند کارخانه‌ای</title>
+    <style>
+      /* نمایش فوری پیش از بارگذاری React تا صفحه سفید دیده نشود */
+      html,
+      body,
+      #root {
+        height: 100%;
+        margin: 0;
+        background: #070b18;
+      }
+      .boot {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 16px;
+        color: #c7d2fe;
+        font-family: 'Vazirmatn', 'Segoe UI', Tahoma, sans-serif;
+      }
+      .boot .ring {
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 3px solid rgba(129, 140, 248, 0.22);
+        border-top-color: #818cf8;
+        animation: boot-spin 0.9s linear infinite;
+      }
+      @keyframes boot-spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root">
+      <div class="boot">
+        <div class="ring"></div>
+        <div>در حال بارگذاری سازنده ERP…</div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>
