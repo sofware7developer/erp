@@ -72,10 +72,10 @@ builder/
 ├── backend/app/
 │   ├── catalog/        کاتالوگ چهارسطحی: DSL + ۲۲ فایل sections/ (۴٬۶۵۸ خط)
 │   ├── domain/         مدل دامنه: مشخصات دستی ۶۲ ماژول + اشتقاق ۶۸ ماژول (۵٬۰۱۴ خط)
-│   ├── generator/      موتور تولید سه‌لایه: لاراول، ری‌اکت، ai-service، deploy، docs (۱۸٬۷۶۵ خط)
+│   ├── generator/      موتور تولید سه‌لایه: لاراول، ری‌اکت، ai-service، deploy، docs (۱۹٬۶۷۵ خط)
 │   ├── ai/             ثبت موتورهای AI، کلاینت AvalAI، دستیار انتخاب ماژول (۹۹۹ خط)
-│   ├── api/            ۳۰ اندپوینت REST (۷۰۱ خط)
-│   ├── config.py       ۹۴ کلید تنظیمات متعارف، مسیرها، درایورها، اهداف استقرار
+│   ├── api/            ۳۰ اندپوینت REST (۷۰۲ خط)
+│   ├── config.py       ۹۷ کلید تنظیمات متعارف، مسیرها، درایورها، اهداف استقرار
 │   ├── selection.py    حل وابستگی‌ها و گسترش انتخاب
 │   ├── presets.py      ۱۱ پریست صنعتی
 │   ├── projects.py     ذخیره/بارگذاری پروژه‌ها در data/projects.json
@@ -186,7 +186,7 @@ docs/                   مستندات معماری، کاتالوگ، API، م�
 | صفحه | کار |
 | --- | --- |
 | خانه | آمار کاتالوگ، ۲۲ بخش، پریست‌ها، موتورهای AI، پوشش مدل داده |
-| پیکربندگر | درخت چهارسطحی با چک‌باکس سه‌حالته و جست‌وجو، سبد انتخاب با برآورد/پوشش/پیش‌نیازها/موتورها، فرم ۹۴ کلید تنظیمات در ۸ گروه، دستیار هوشمند و گفت‌وگو، پروژه‌های ذخیره‌شده با فازبندی، تولید بسته |
+| پیکربندگر | درخت چهارسطحی با چک‌باکس سه‌حالته و جست‌وجو، سبد انتخاب با برآورد/پوشش/پیش‌نیازها/موتورها، فرم ۹۷ کلید تنظیمات در ۸ گروه، دستیار هوشمند و گفت‌وگو، پروژه‌های ذخیره‌شده با فازبندی، تولید بسته |
 | موتورهای AI | کارت ۱۱ موتور + جدول ۲۶۶ نقطه AI با فیلتر موتور و مدل/فلگ هر نقطه |
 | بسته‌ها | فهرست بسته‌های تولیدشده با آمار و دانلود zip |
 | جزئیات بسته | درخت فایل، نمایشگر کد با رنگ‌آمیزی، جدول ماژول‌ها، مانیفست JSON و آمار ناحیه‌ها |
@@ -209,7 +209,7 @@ docs/                   مستندات معماری، کاتالوگ، API، م�
 | `scripts/validate_package.py` | اعتبارسنجی ایستای یک بسته تولیدشده (نشتی `@@placeholder@@`، namespace/class PHP، syntax JS، JSON/YAML معتبر) |
 | `scripts/smoke_generate.py` | تولید سریع یک بسته از یک پریست |
 | `scripts/smoke_matrix.py` | چهار سناریوی ترکیبی (mysql/pgsql/sqlite × IoT × AvalAI × حجم ماژول) |
-| `scripts/check_flags.py` | ۳۸ گزاره درباره اثر واقعی تنظیمات روی خروجی (فلگ‌ها، compose، env) |
+| `scripts/check_flags.py` | ۴۷ گزاره درباره اثر واقعی تنظیمات روی خروجی (فلگ‌ها، compose، env، داده نمونه) |
 | `scripts/verify_generated.py` | راستی‌آزمایی سرتاسری: ایستا + مانیفست + pytest سرویس AI + ساخت فرانت‌اند |
 | `scripts/verify_ui.py` | ساخت باندل سازنده + شکل پاسخ API + آزمون دود رندر همه صفحه‌ها |
 | `scripts/package_checks.py` | کتابخانه مشترک بررسی‌ها (بین سه اسکریپت بالا) |
@@ -220,18 +220,18 @@ docs/                   مستندات معماری، کاتالوگ، API، م�
 validate_catalog.py     ✓  ۲۲ بخش / ۱۳۰ ماژول / ۵۱۵ زیرماژول / ۲٬۱۵۷ قابلیت / ۲۶۶ AI
 validate_domain.py      ✓  ۴۴۲ جدول / ۷٬۰۰۸ فیلد
 smoke_matrix.py         ✓  ۴ از ۴ سناریو — ۰ شکست
-check_flags.py          ✓  ۳۸ گزاره — ۰ شکست
-verify_generated.py     ✓  ۰ شکست — ۳٬۴۷۹ فایل / ۴۰۲٬۲۲۳ خط / zip ۴٫۳۱ MB / ۰٫۹ ثانیه
-                           ۱۵ آزمون pytest سرویس AI تولیدشده سبز، docker-compose با ۸ سرویس
+check_flags.py          ✓  ۴۷ گزاره — ۰ شکست
+verify_generated.py     ✓  ۰ شکست — ۳٬۴۸۱ فایل / ۴۱۰٬۸۴۵ خط / zip ۴٫۳۸ MB / ۱٫۰ ثانیه
+                           ۱۵ آزمون pytest سرویس AI سبز، docker-compose ۸ سرویس، demo-data ۳۲۷ جدول، policy-bindings ۳۳۵ نگاشت
 verify_ui.py            ✓  ۰ شکست — ۳۳ بررسی رندر و قرارداد داده
 ```
 
 | سناریو (`smoke_matrix.py`) | ماژول | جدول | فیلد | AI | فایل | خط | zip | زمان |
 | --- | ---: | ---: | ---: | ---: | ---: | ---: | ---: | ---: |
-| `small-mysql` | ۲۲ | ۱۰۵ | ۱٬۴۴۶ | ۷۳ | ۱٬۱۸۹ | ۱۳۵٬۱۶۱ | ۱٫۴۸ MB | ۰٫۳ s |
-| `sqlite-minimal` | ۳۸ | ۱۶۱ | ۲٬۳۳۵ | ۱۰۷ | ۱٬۵۴۵ | ۱۸۰٬۵۲۲ | ۱٫۹۳ MB | ۰٫۴ s |
-| `pgsql-ai-avalai` | ۹۷ | ۳۴۱ | ۵٬۲۸۹ | ۲۰۵ | ۳٬۵۳۹ | ۴۰۹٬۱۲۴ | ۴٫۳۸ MB | ۰٫۹ s |
-| `full-mysql-iot` | ۱۳۰ | ۴۴۲ | ۷٬۰۲۰ | ۲۶۶ | ۴٬۵۴۷ | ۵۲۵٬۰۱۹ | ۵٫۶۵ MB | ۱٫۱ s |
+| `small-mysql` | ۲۲ | ۱۰۵ | ۱٬۴۴۶ | ۷۳ | ۱٬۱۹۱ | ۱۳۷٬۹۸۶ | ۱٫۵۱ MB | ۰٫۳ s |
+| `sqlite-minimal` | ۳۸ | ۱۶۱ | ۲٬۳۳۵ | ۱۰۷ | ۱٬۵۴۵ | ۱۸۰٬۵۳۱ | ۱٫۹۳ MB | ۰٫۴ s |
+| `pgsql-ai-avalai` | ۹۷ | ۳۴۱ | ۵٬۲۸۹ | ۲۰۵ | ۳٬۵۴۱ | ۴۱۷٬۹۱۶ | ۴٫۴۵ MB | ۱٫۰ s |
+| `full-mysql-iot` | ۱۳۰ | ۴۴۲ | ۷٬۰۲۰ | ۲۶۶ | ۴٬۵۴۹ | ۵۳۶٬۸۸۰ | ۵٫۷۴ MB | ۱٫۱ s |
 
 ---
 
@@ -254,7 +254,7 @@ verify_ui.py            ✓  ۰ شکست — ۳۳ بررسی رندر و قرا�
 
 ## تنظیمات کارخانه
 
-۹۴ کلید متعارف در `builder/backend/app/config.py:DEFAULT_FACTORY_SETTINGS` که از طریق
+۹۷ کلید متعارف در `builder/backend/app/config.py:DEFAULT_FACTORY_SETTINGS` که از طریق
 `normalize_settings()` نرمال‌سازی می‌شوند (کلیدهای قدیمی مثل `factory_name` و `base_currency` هم
 پذیرفته می‌شوند). گروه‌ها:
 
@@ -267,7 +267,7 @@ verify_ui.py            ✓  ۰ شکست — ۳۳ بررسی رندر و قرا�
 | IoT | `iot_enabled`, `mqtt_host`, `mqtt_port`, `mqtt_topic_prefix`, `iot_sampling_seconds` |
 | اطلاع‌رسانی | `mail_driver`, `mail_host`, `mail_from`, `sms_enabled`, `sms_provider` |
 | مدیر/پشتیبان | `admin_email`, `admin_password`, `backup_enabled`, `backup_cron`, `backup_keep_days` |
-| خروجی | `deploy_target`, `app_env`, `ssl_enabled`, `multi_tenant`, `include_demo_data`, `include_tests`, `include_docs`, `include_mobile_pwa` |
+| خروجی | `deploy_target`, `app_env`, `ssl_enabled`, `multi_tenant`, `include_demo_data`, `demo_data_months`, `demo_data_rows`, `demo_data_seed`, `include_tests`, `include_docs`, `include_mobile_pwa` |
 
 گذرواژه‌های خالی هنگام تولید با مقدار امن تصادفی پر می‌شوند و در `.env` و `manifest.json` بسته
 نوشته می‌شوند.
@@ -278,7 +278,8 @@ verify_ui.py            ✓  ۰ شکست — ۳۳ بررسی رندر و قرا�
 
 - **پایتون ۳٫۱۱** و **Node ۱۸+** (این مخزن با Node ۲۲ آزموده شده).
 - کد PHP/لاراول تولیدشده در این مخزن **اجرا نمی‌شود** (PHP و Composer نصب نیستند)؛ به‌جای آن
-  بررسی‌های ایستای ساختاری انجام می‌شود (`php_structure`، namespace/class، نشتی placeholder).
+  بررسی‌های ایستای ساختاری انجام می‌شود (`php_structure`، namespace/class، نشتی placeholder،
+  `check_demo_data` برای ترتیب توپولوژیک داده نمونه و `check_policy_bindings` برای نگاشت سیاست‌ها).
   کد پایتون تولیدشده (سرویس AI) واقعاً اجرا و با pytest آزموده می‌شود و فرانت‌اند تولیدشده
   واقعاً با Vite ساخته می‌شود.
 - خروجی `dist-packages/` و `data/*.json` در `.gitignore` هستند.

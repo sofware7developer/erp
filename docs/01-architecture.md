@@ -32,14 +32,14 @@
 POST /api/generate {project}
   ├─ projects.save_project()            (اختیاری، با save_project)
   ├─ pipeline.generate_package()
-  │   ├─ settings_map.normalize_settings()   ← ۹۴ کلید متعارف + کلیدهای قدیمی
+  │   ├─ settings_map.normalize_settings()   ← ۹۷ کلید متعارف + کلیدهای قدیمی
   │   ├─ selection.resolve()                 ← ماژول‌های نهایی + پیش‌نیازهای خودکار
   │   ├─ domain.specs_for_modules()          ← موجودیت‌ها با ترتیب توپولوژیک
   │   ├─ build_context()                     ← slug/pascal/شمارش‌ها/آمار ماژول‌ها
   │   ├─ generate_core_files()               ← اسکلت لاراول + config + Support
   │   ├─ generate_domain_files()             ← مایگریشن/مدل/کنترلر/… برای هر موجودیت
   │   ├─ generate_system_files()             ← احراز هویت، مجوز، ممیزی، گزارش، داشبورد
-  │   ├─ generate_routes() + generate_seeders()
+  │   ├─ generate_routes() + generate_seeders()   ← روت‌ها، Seederها و موتور داده نمونه (demo_data)
   │   ├─ generate_ai_service()               ← فقط اگر ai_enabled و نقطه AI وجود داشته باشد
   │   ├─ generate_frontend()                 ← SPA داده‌محور + منوی پویا
   │   ├─ generate_deploy_files()             ← compose/nginx/systemd/Makefile/deploy.sh
@@ -57,7 +57,7 @@ POST /api/generate {project}
 | دامنه | `builder/backend/app/domain/` | «چه داده‌هایی لازم است» — مشخصات دستی ۶۲ ماژول، اشتقاق ۶۸ ماژول از کاتالوگ، موجودیت‌های پلتفرمی، اعتبارسنجی کلید خارجی |
 | انتخاب | `builder/backend/app/selection.py` | «کاربر چه خواسته و چه چیزی لازم می‌شود» — گسترش سلسله‌مراتبی، پیش‌نیاز خودکار، برآورد |
 | AI | `builder/backend/app/ai/` | ثبت ۱۱ موتور، نگاشت نقطه AI → موتور/اندپوینت/مدل/فلگ، کلاینت AvalAI، دستیار پیشنهاد و فازبندی و چت |
-| تولید | `builder/backend/app/generator/` | «کد واقعی» — ۱۳ فایل، ۱۸٬۷۶۵ خط قالب و منطق نوشتن |
+| تولید | `builder/backend/app/generator/` | «کد واقعی» — ۱۴ فایل، ۱۹٬۶۷۵ خط قالب و منطق نوشتن |
 | سرویس | `builder/backend/app/api/`, `main.py` | REST + سرو کردن باندل رابط کاربری |
 
 اصل طراحی: **هیچ داده‌ای در قالب‌ها hard-code نیست**. هر عدد (شمارش ماژول، جدول، فایل، نقطه AI)
@@ -81,7 +81,7 @@ POST /api/generate {project}
 │   │   └── Support/            Jalali · PersianText · AvalAiClient · AiServiceClient
 │   │                           ActivityLogger · ModuleRegistry
 │   ├── database/migrations/    2026_01_01_<seq>_create_<table>_table.php
-│   ├── database/seeders/       SystemSeeder + <Ns><CODE>Seeder برای هر ماژول
+│   ├── database/seeders/       SystemSeeder + <Ns><CODE>Seeder + DemoDataSeeder/Demo/DemoHistorySeeder
 │   ├── database/factories/<Ns>/
 │   ├── routes/modules/<slug>.php   auth:sanctum + permission
 │   ├── tests/Feature/<Ns>/     آزمون PHPUnit برای هر موجودیت
@@ -102,7 +102,7 @@ POST /api/generate {project}
 | عنصر | قاعده | نمونه |
 | --- | --- | --- |
 | namespace | از **بخش** کاتالوگ (`SECTION_NAMESPACE`) | `A` → `App\Models\Manufacturing` |
-| ماژول بدون بخش (پلتفرم) | `S0` → `App\Models\System` | `Company`, `User` |
+| ماژول بدون بخش (پلتفرم) | `S0` → `App\Models\System` | `SystemFeature` |
 | Seeder | `<Ns><CODE>Seeder` | `ManufacturingA1Seeder` |
 | Service | `<Ns><CODE>Service` | `ManufacturingA1Service` |
 | جدول | از مدل دامنه (جمع فارسی‌پسند/انگلیسی) | `production_orders` |

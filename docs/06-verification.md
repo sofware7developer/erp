@@ -73,6 +73,8 @@ package_checks.py       کتابخانه مشترک بررسی‌ها
 - `build_frontend(root)` — `npm install` و `npm run build` واقعی روی فرانت‌اند تولیدشده
 - `check_compose_services(root)` — سازگاری سرویس‌های docker-compose با تنظیمات بسته
 - `check_manifest(root)` — سازگاری `manifest.json` با فایل‌های واقعی روی دیسک
+- `check_demo_data(root)` — وجود سه‌گانه فایل‌های داده نمونه، معتبر بودن ثابت‌های `MONTHS`/`ROWS`/`SEED` و ترتیب توپولوژیک کلیدهای خارجی اجباری (والد پیش از فرزند)
+- `check_policy_bindings(root)` — برای هر نگاشت سیاست در `PolicyServiceProvider`، وجود فایل مدل و سیاست در مسیر متناظر (نگهبان بازگشت برای ناهمسانی فضای‌نام، مثلاً `Core` به‌جای `System`)
 - `summarize(problems)` — شمارش و نمونه‌گیری برای چاپ گزارش
 
 ## `smoke_generate.py`
@@ -96,17 +98,17 @@ package_checks.py       کتابخانه مشترک بررسی‌ها
 
 ```
 case                mod   ent    fld     ai     files   lines     zipMB   sec    validation
-small-mysql         22    105    1446    73     1189    135161    1.48    0.3    ok
-full-mysql-iot      130   442    7020    266    4547    525019    5.65    1.1    ok
-sqlite-minimal      38    161    2335    107    1545    180522    1.93    0.4    ok
-pgsql-ai-avalai     97    341    5289    205    3539    409124    4.38    0.9    ok
+small-mysql         22    105    1446    73     1191    137986    1.51    0.3    ok
+full-mysql-iot      130   442    7020    266    4549    536880    5.74    1.1    ok
+sqlite-minimal      38    161    2335    107    1545    180531    1.93    0.4    ok
+pgsql-ai-avalai     97    341    5289    205    3541    417916    4.45    1.0    ok
 
 failures: 0
 ```
 
 ## `check_flags.py`
 
-هشت گروه پرچم، هر کدام با ساخت **دو بسته** (فعال/غیرفعال) و مقایسه؛ مجموعاً ۳۸ گزاره:
+نه گروه پرچم، هر کدام با ساخت **دو بسته** (فعال/غیرفعال) و مقایسه؛ مجموعاً ۴۷ گزاره:
 
 | پرچم | چه چیزی assert می‌شود |
 | --- | --- |
@@ -117,6 +119,7 @@ failures: 0
 | `include_report_templates` | وجود `backend/config/reports.php` |
 | `include_tests` | وجود `backend/phpunit.xml` و ≥۱۰ فایل در `tests/Feature` (در حالت خاموش: صفر) |
 | `iot_enabled` | وجود `deploy/mosquitto/config/mosquitto.conf` و `mosquitto` در compose |
+| `include_demo_data` | وجود `DemoDataSeeder.php` و `Demo/DemoDataSpec.php` و `Demo/DemoHistorySeeder.php`؛ ارجاع `DemoDataSeeder` به `DemoHistorySeeder`؛ یادداشت «داده نمونه فعال/غیرفعال» در seeder ماژول |
 | `db_driver` | sqlite ⇒ `DB_CONNECTION: sqlite` در compose؛ pgsql ⇒ `postgres:16-alpine` و `DB_CONNECTION=pgsql` در `.env`؛ mysql ⇒ `mysql:8.4` |
 
 ## `verify_generated.py`
@@ -128,7 +131,7 @@ failures: 0
 ```
 
 ۱. اعتبارسنجی ایستای همه فایل‌ها (`validate_package`)
-۲. سازگاری `manifest.json` و `docker-compose.yml`
+۲. سازگاری `manifest.json` و `docker-compose.yml`، سلامت داده نمونه (`check_demo_data`) و نگاشت سیاست‌ها (`check_policy_bindings`)
 ۳. اجرای آزمون‌های pytest سرویس AI تولیدشده
 ۴. ساخت واقعی فرانت‌اند تولیدشده (`npm install && npm run build`) — با `--no-build` رد می‌شود
 
@@ -137,13 +140,15 @@ failures: 0
 ### آخرین نتیجه
 
 ```
-بسته: factory-erp-20261116-155659
+بسته: factory-erp-20261116-170649
 ماژول‌ها: 95 | جداول: 335 | فیلدها: 5173 | نقاط AI: 202
-فایل‌ها: 3479 | خط‌ها: 402223 | zip: 4.31 MB | زمان: 0.9s
+فایل‌ها: 3481 | خط‌ها: 410845 | zip: 4.38 MB | زمان: 1.0s
 
 ۱) اعتبارسنجی ایستا        PASS  0 مشکل
-۲) مانیفست و پشته استقرار  PASS  manifest: 3479 فایل، 95 ماژول
+۲) مانیفست و پشته استقرار  PASS  manifest: 3481 فایل، 95 ماژول
                            PASS  docker-compose: 8 سرویس
+                           PASS  demo-data: 327 جدول، 146 کلید خارجی اجباری مرتب‌شده
+                           PASS  policy-bindings: 335 نگاشت سیاست، همه مدل‌ها/سیاست‌ها موجود
 ۳) آزمون‌های سرویس AI      PASS  15 passed
 ۴) ساخت فرانت‌اند          SKIP  (--no-build)
 
@@ -163,7 +168,7 @@ failures: 0
 
 ۱. ساخت باندل رابط کاربری سازنده (`npm run build`)
 ۲. بالا آوردن سرویس FastAPI روی یک پورت آزاد و بررسی شکل پاسخ‌ها: `health`, `meta`
-   (شمارش‌ها، موتورها، ۹۴ کلید تنظیمات، اهداف و صنایع دستیار)، `catalog?depth=4`, `presets`,
+   (شمارش‌ها، موتورها، ۹۷ کلید تنظیمات، اهداف و صنایع دستیار)، `catalog?depth=4`, `presets`,
    `presets/{key}/apply` + `resolve`, `packages`, `packages/{id}`, `tree`, `file`
 ۳. اجرای `npm run smoke` با `SMOKE_API` که به همان سرویس موقت اشاره می‌کند
 

@@ -1,20 +1,21 @@
 # موتور تولید
 
-`builder/backend/app/generator/` — ۱۳ فایل، ۱۸٬۷۶۵ خط. این بزرگ‌ترین بخش مخزن است چون هر فایل
+`builder/backend/app/generator/` — ۱۴ فایل، ۱۹٬۶۷۵ خط. این بزرگ‌ترین بخش مخزن است چون هر فایل
 خروجی یک قالب واقعی است، نه یک الگوی انتزاعی.
 
 | فایل | خط | مسئولیت |
 | --- | ---: | --- |
 | `writers.py` | ۲۶۸ | ابزار نوشتن: `render`, `Package`, `php_value`, `php_array`, `slugify`, `pascal` |
-| `settings_map.py` | ۲۶۸ | نرمال‌سازی ۹۴ کلید تنظیمات + کلیدهای قدیمی + تولید رمز امن + اشتقاق URLها |
-| `domain_naming.py` | ۵۲ | نگاشت بخش کاتالوگ → namespace و نام‌گذاری کلاس‌ها |
-| `pipeline.py` | ۵۸۹ | هماهنگ‌کننده هفت مرحله‌ای تولید + مانیفست + zip |
-| `laravel_routes.py` | ۶۴۹ | روت‌های API هر ماژول، web.php، Seederها |
+| `settings_map.py` | ۲۷۷ | نرمال‌سازی ۹۷ کلید تنظیمات + کلیدهای قدیمی + تولید رمز امن + اشتقاق URLها |
+| `domain_naming.py` | ۷۳ | نگاشت بخش کاتالوگ → namespace، نام‌گذاری کلاس‌ها و کارخانه `platform_module()` مشترک |
+| `pipeline.py` | ۵۹۰ | هماهنگ‌کننده هفت مرحله‌ای تولید + مانیفست + zip |
+| `laravel_routes.py` | ۶۲۹ | روت‌های API هر ماژول، web.php، Seederها و فراخوانی موتور داده نمونه |
+| `demo_data.py` | ۸۸۲ | موتور داده نمونه تاریخ‌دار: `DemoDataSpec` (مشخصات توپولوژیک جداول) + `DemoHistorySeeder` (درج با کلید خارجی واقعی و سری زمانی) |
 | `deploy.py` | ۱٬۱۸۲ | docker-compose، nginx، systemd، crontab، deploy.sh، Makefile، اسکریپت‌های عملیاتی |
 | `laravel_core.py` | ۱٬۳۰۵ | اسکلت لاراول: composer.json، config/*.php، .env، Support/*، Providerها، middleware |
-| `laravel_domain.py` | ۱٬۵۳۸ | برای هر موجودیت: migration, model, controller, request, resource, policy, factory, test, seeder, service |
-| `docs.py` | ۱٬۷۲۱ | README فارسی و تا ۹ سند در `docs/` بسته |
-| `laravel_system.py` | ۳٬۱۵۷ | احراز هویت، مجوزها، ممیزی، گزارش‌ساز، داشبورد، مرکز AI، دستورهای artisan، SystemSeeder |
+| `laravel_domain.py` | ۱٬۵۴۵ | برای هر موجودیت: migration, model, controller, request, resource, policy, factory, test, seeder, service |
+| `docs.py` | ۱٬۷۲۸ | README فارسی و تا ۹ سند در `docs/` بسته |
+| `laravel_system.py` | ۳٬۱۶۰ | احراز هویت، مجوزها، ممیزی، گزارش‌ساز، داشبورد، مرکز AI، دستورهای artisan، SystemSeeder |
 | `frontend.py` | ۳٬۸۲۲ | SPA تولیدشده: منوی پویا، اسکیماهای جدول، صفحه‌های داده‌محور، مرکز AI، PWA |
 | `ai_service.py` | ۴٬۱۷۰ | میکروسرویس FastAPI با ۱۱ موتور واقعی + آزمون‌های pytest |
 
@@ -68,7 +69,7 @@ normalize_settings(raw, *, project_name, project_name_en, project_description,
 
 مراحل:
 
-1. شروع از `DEFAULT_FACTORY_SETTINGS` (۹۴ کلید) و ادغام `raw`.
+1. شروع از `DEFAULT_FACTORY_SETTINGS` (۹۷ کلید) و ادغام `raw`.
 2. اعمال `ALIASES` برای کلیدهای قدیمی — `factory_name→company_name`,
    `factory_name_en→company_name_en`, `base_currency→currency`, `national_id→company_national_id`,
    `fiscal_year_start→fiscal_year_start_month`, `backup_schedule→backup_cron`,
@@ -163,6 +164,21 @@ tests/Feature/<Ns>/<Entity>Test.php
 `routes/api.php` و `routes/web.php` که فایل‌های ماژول را بارگذاری می‌کنند، و
 `database/seeders/DatabaseSeeder.php` که `SystemSeeder` و همه `<Ns><CODE>Seeder`ها را به ترتیب
 توپولوژیک صدا می‌زند. ماژول‌های پلتفرمی با کد مجازی `S0` ⇒ `SystemS0Seeder`.
+
+هنگامی که `include_demo_data=true` باشد، `generate_seeders` موتور داده نمونه
+(`demo_data.py`) را صدا می‌زند که `DemoDataSeeder` دو لایه را می‌سازد:
+
+1. **لایه ماژول** — هر `<Ns><CODE>Seeder` فقط جداول *بدون* کلید خارجی اجباری را با
+   `Model::factory()->count(5)` درج می‌کند. جداول با کلید خارجی اجباری عمداً با `factory`
+   پر نمی‌شوند (کارخانه‌ها ستون کلید خارجی را commented-out می‌گذارند، پس درج واقعی با
+   خطای NOT NULL/FK شکست می‌خورد) و به لایه دوم سپرده می‌شوند.
+2. **لایه تاریخچه** — `Demo/DemoHistorySeeder.php` مشخصات ستون‌ها را از `Demo/DemoDataSpec.php`
+   می‌خواند (که خود از همان مدل دامنه مایگریشن‌ها، به ترتیب توپولوژیک ساخته شده) و برای هر
+   جدول: کلید خارجی اجباری را از شناسه‌های واقعی والد انتخاب می‌کند، تاریخ‌ها را در بازه
+   `demo_data_months` پخش می‌کند، و برای ستون‌های نشانه‌گذاری‌شده سری زمانی با روند + فصلانگی
+   شمسی + نویز + ناهنجاری عمدی + تخریب تدریجی لرزش می‌سازد. جدول با والد ناموجود با هشدار
+   رد می‌شود (نه درج ناموفق) و جداول خودارجاع ردیف‌به‌ردیف درج می‌شوند. RNG با بذر
+   `demo_data_seed` ⇒ خروجی تکرارپذیر. جزئیات در `docs/07-roadmap.md` (فاز ۴).
 
 ---
 

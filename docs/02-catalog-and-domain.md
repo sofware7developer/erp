@@ -150,7 +150,7 @@ module_spec(code, name_en, label_fa, entities, *, menu_group="", description="",
 | --- | --- |
 | `SYSTEM_MODULES` | ۹ ماژول زیرساختی که همیشه افزوده می‌شوند: `S1, G1, D4, D3, F1, P1, V3, K7, P2` |
 | `SUPPORT_MODULES` | نگاشت «ماژول → پیش‌نیازهای پشتیبان» (مثلاً `A1 → A3, A4, D4`) |
-| `PLATFORM_ENTITY` | موجودیت پلتفرمی (`companies`) با `module_code` خالی که به ماژول مجازی `S0` نگاشت می‌شود |
+| `PLATFORM_ENTITY` | موجودیت پلتفرمی `SystemFeature` (جدول `system_features`) با `module_code` خالی که به ماژول مجازی `S0` نگاشت می‌شود |
 | `all_specs()` | همه مشخصات: ۶۲ ماژول دستی (`base_specs.py`, `core_specs_*.py`) + ۶۸ ماژول مشتق (`derived.py`) |
 | `entity_table_map()` | نگاشت نام موجودیت → جدول؛ نام جدول تکراری ⇒ خطای سخت |
 | `validate_foreign_keys()` | فهرست کلیدهای خارجی بدون مقصد |

@@ -26,7 +26,7 @@
 | --- | --- |
 | `counts` | `{sections:22, modules:130, groups:515, items:2157, ai_points:266}` |
 | `db_drivers`, `queue_drivers`, `storage_drivers`, `deploy_targets` | فهرست `{id,label,note}` برای فرم تنظیمات |
-| `default_settings` | ۹۴ کلید متعارف تنظیمات کارخانه |
+| `default_settings` | ۹۷ کلید متعارف تنظیمات کارخانه |
 | `ai_engines` | ۱۱ موتور با `{key,name_fa,name_en,category,algorithms,endpoint,uses_llm,realtime,metrics,description}` |
 | `advisor_goals` | ۳۷ هدف کسب‌وکاری شناخته‌شده برای دستیار (`GOAL_MODULES`) |
 | `industries` | ۱۱ صنعت `{id,label,note}` هم‌تراز با پریست‌ها |
@@ -162,8 +162,14 @@
 ### `POST /api/advisor/recommend`
 
 همان ورودی، اما در صورت فعال بودن AvalAI نتیجه قاعده‌محور توسط LLM بازبینی می‌شود
-(افزودن/حذف ماژول با JSON mode؛ ماژول‌های سیستمی هرگز حذف نمی‌شوند) و `llm_used`/`llm_note`
-برمی‌گردد.
+(افزودن/حذف ماژول با JSON mode؛ ماژول‌های سیستمی هرگز حذف نمی‌شوند).
+
+پاسخ: `{recommended_modules, recommended_ai_points, phases, coverage, rationale, ai_level,
+size_bucket, llm_used, llm_note}`.
+
+> توجه: کلیدهای این مسیر (`recommended_modules`/`recommended_ai_points`) با مسیر سریع
+> (`modules`/`ai_points`) متفاوت است. `AdvisorPanel` در رابط کاربری پاسخ را در مرز دریافت
+> یکدست می‌کند تا هر دو مسیر یکسان کار کنند.
 
 ### `POST /api/advisor/phases`
 
@@ -187,7 +193,7 @@
 | `POST /api/projects` | ایجاد (بدنه: `ProjectConfig`) |
 | `PUT /api/projects/{id}` | به‌روزرسانی |
 | `DELETE /api/projects/{id}` | `{deleted: id}` یا ۴۰۴ |
-| `POST /api/projects/{id}/phases` | ساخت و ذخیره فازبندی → `{project, phases}` |
+| `POST /api/projects/{id}/phases` | ساخت و ذخیره فازبندی → `{project, phases, total_months}` |
 
 شکل پروژه: `{id,name,name_en,description,preset_key,selection{…},settings{…},phases[],created_at,updated_at}`
 ذخیره در `data/projects.json` (در `.gitignore`).
