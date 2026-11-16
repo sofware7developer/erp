@@ -1,0 +1,31 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+
+# Node
+node_modules/
+dist/
+.vite/
+*.local
+
+# Generated deployment packages (خروجی سازنده)
+dist-packages/
+output/
+*.zip
+!.gitkeep
+
+# Env
+.env
+.env.local
+
+# OS / IDE
+.DS_Store
+.idea/
+.vscode/
+
+# داده تولیدشده/زمان‌اجرا (با scripts/validate_catalog.py بازتولید می‌شود)
+data/catalog.json
+data/projects.json
