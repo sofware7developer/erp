@@ -3011,7 +3011,10 @@ def generate_system_files(
     for entity in entities:
         from .laravel_domain import module_namespace
 
-        namespace = module_namespace({"code": entity["module_code"], "slug": ""})
+        # موجودیت پلتفرمی module_code خالی دارد؛ باید به S0 نگاشت شود تا
+        # فضای‌نام System (نه Core) برای کلید سیاست به‌کار رود، وگرنه سیاستِ
+        # App\Models\System\SystemFeature هرگز در PolicyServiceProvider ثبت نمی‌شود.
+        namespace = module_namespace({"code": entity["module_code"] or "S0", "slug": ""})
         policy_map[f"App\\Models\\{namespace}\\{entity['name']}"] = (
             f"App\\Policies\\{namespace}\\{entity['name']}Policy"
         )

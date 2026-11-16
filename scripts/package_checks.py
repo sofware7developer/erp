@@ -322,3 +322,33 @@ def check_demo_data(root: Path) -> tuple[bool, str]:
 
     detail = f"{len(tables)} جدول، {required} کلید خارجی اجباری مرتب‌شده"
     return (not problems), "; ".join(problems) or detail
+
+
+def check_policy_bindings(root: Path) -> tuple[bool, str]:
+    """بررسی اینکه هر نگاشت سیاست به مدل/سیاستِ واقعاً موجود ارجاع دهد.
+
+    اگر فضای‌نام مدل در PolicyServiceProvider با مسیر واقعی فایل مدل نخواند
+    (مثلاً موجودیت پلتفرمی به‌جای System در Core ثبت شود)، سیاست هرگز بسته
+    نمی‌شود. این بررسی آن ناهمسانی را می‌گیرد.
+    """
+    provider = root / "backend" / "app" / "Providers" / "PolicyServiceProvider.php"
+    if not provider.exists():
+        return True, "PolicyServiceProvider وجود ندارد"
+
+    text = provider.read_text(encoding="utf-8")
+    pairs = re.findall(r"'(App\\\\Models\\\\[^']+)'\s*:\s*'(App\\\\Policies\\\\[^']+)'", text)
+    if not pairs:
+        return False, "هیچ نگاشت سیاستی در PolicyServiceProvider یافت نشد"
+
+    def to_rel(fqcn: str) -> str:
+        parts = fqcn.split("\\\\")  # جداکننده دو بک‌اسلش است
+        return "backend/" + parts[0].lower() + "/" + "/".join(parts[1:]) + ".php"
+
+    problems: list[str] = []
+    for model, policy in pairs:
+        if not (root / to_rel(model)).exists():
+            problems.append(f"مدل یافت نشد: {to_rel(model)}")
+        if not (root / to_rel(policy)).exists():
+            problems.append(f"سیاست یافت نشد: {to_rel(policy)}")
+
+    return (not problems), "; ".join(problems[:6]) or f"{len(pairs)} نگاشت سیاست، همه مدل‌ها/سیاست‌ها موجود"

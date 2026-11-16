@@ -31,6 +31,7 @@ from package_checks import (  # noqa: E402
     check_compose_services,
     check_demo_data,
     check_manifest,
+    check_policy_bindings,
     run_ai_tests,
     summarize,
     validate_package,
@@ -100,6 +101,7 @@ def main() -> int:
         ("manifest", check_manifest),
         ("docker-compose", check_compose_services),
         ("demo-data", check_demo_data),
+        ("policy-bindings", check_policy_bindings),
     ):
         ok, detail = check(root)
         failures += 0 if ok else 1
